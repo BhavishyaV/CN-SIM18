@@ -124,7 +124,7 @@ main (int argc, char *argv[])
 
 
   Ipv4GlobalRoutingHelper::PopulateRoutingTables ();
-
+  echoClient.SetFill (clientApps.Get (0), plainText);
   pointToPoint.EnablePcapAll ("second");
   csma.EnablePcap ("second", csmaDevices.Get (1), true);
 
