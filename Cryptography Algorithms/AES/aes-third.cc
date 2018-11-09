@@ -190,15 +190,14 @@ main (int argc, char *argv[])
 
 
   Ipv4GlobalRoutingHelper::PopulateRoutingTables ();
-
+  echoClient.SetFill (clientApps.Get (0), cipher);
   Simulator::Stop (Seconds (10.0));
 
-  if (tracing == true)
-    {
-      pointToPoint.EnablePcapAll ("third");
-      phy.EnablePcap ("third", apDevices.Get (0));
-      csma.EnablePcap ("third", csmaDevices.Get (0), true);
-    }
+ 
+  pointToPoint.EnablePcapAll ("third");
+  phy.EnablePcap ("third", apDevices.Get (0));
+  csma.EnablePcap ("third", csmaDevices.Get (0), true);
+    
 
   Simulator::Run ();
   Simulator::Destroy ();
