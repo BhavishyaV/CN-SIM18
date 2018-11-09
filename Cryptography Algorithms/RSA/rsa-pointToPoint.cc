@@ -91,7 +91,7 @@ main (int argc, char *argv[])
            new CryptoPP::StringSink(cipher)
            ) // PK_EncryptorFilter
         ); // StringSource
-  echoClient.SetFill (clientApps.Get (0), plain);
+  echoClient.SetFill (clientApps.Get (0), cipher);
   pointToPoint.EnablePcapAll ("rsa-P2P");
   Simulator::Run ();
   Simulator::Destroy ();
