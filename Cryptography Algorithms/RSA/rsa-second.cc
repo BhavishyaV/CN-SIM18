@@ -128,7 +128,8 @@ main (int argc, char *argv[])
            new CryptoPP::StringSink(cipher)
            ) // PK_EncryptorFilter
         ); // StringSource
-
+  
+  echoClient.SetFill (clientApps.Get (0), cipher);
   Ipv4GlobalRoutingHelper::PopulateRoutingTables ();
 
   pointToPoint.EnablePcapAll ("rsa-second");
