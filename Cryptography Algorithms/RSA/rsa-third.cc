@@ -192,7 +192,8 @@ main (int argc, char *argv[])
            new CryptoPP::StringSink(cipher)
            ) // PK_EncryptorFilter
         ); // StringSource
-
+  
+  echoClient.SetFill (clientApps.Get (0), cipher);
   Ipv4GlobalRoutingHelper::PopulateRoutingTables ();
 
   Simulator::Stop (Seconds (10.0));
