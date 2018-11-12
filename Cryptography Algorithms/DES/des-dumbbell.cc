@@ -22,10 +22,10 @@
 #include "ns3/point-to-point-dumbbell.h"
 #include "ns3/ipv4-global-routing-helper.h"
 #include<iostream>
-#include <crypto++/rsa.h>
-#include "string.h"
+#include <crypto++/des.h>
 #include <crypto++/modes.h>
 #include <crypto++/osrng.h>
+#include <crypto++/hex.h>
 
 using namespace ns3;
 
@@ -63,26 +63,22 @@ int main(int argc, char *argv[])
   routerAddress.SetBase("10.1.3.0","255.255.255.252");
 
   network1.AssignIpv4Addresses (address1,address2,routerAddress);
-  // Generate keys
-  CryptoPP::AutoSeededRandomPool rng;
+  
+  CryptoPP::AutoSeededRandomPool prng;
+  CryptoPP::SecByteBlock key(CryptoPP::DES::DEFAULT_KEYLENGTH);
+  prng.GenerateBlock(key, key.size());
 
-  CryptoPP::InvertibleRSAFunction params;
-  params.GenerateRandomWithKeySize(rng, 3072);
+  byte iv[CryptoPP::DES::BLOCKSIZE];
+  prng.GenerateBlock(iv, sizeof(iv));
 
-  CryptoPP::RSA::PrivateKey privateKey(params);
-  CryptoPP::RSA::PublicKey publicKey(params);
   std::string plain = "Hello World";
-  std::string cipher;
+  std::string cipher, encoded;
 
-  // Encryption
-  CryptoPP::RSAES_OAEP_SHA_Encryptor e(publicKey);
-  
-  CryptoPP::StringSource ss1(plain, true,
-       new CryptoPP::PK_EncryptorFilter(rng, e,
-           new CryptoPP::StringSink(cipher)
-           ) // PK_EncryptorFilter
-        ); // StringSource
-  
+  CryptoPP::CBC_Mode< CryptoPP::DES >::Encryption e;
+  e.SetKeyWithIV(key, key.size(), iv);
+  CryptoPP::StringSource(plain, true, new CryptoPP::StreamTransformationFilter(e,new CryptoPP::StringSink(cipher))); 
+  encoded.clear();
+  CryptoPP::StringSource(cipher, true,new CryptoPP::HexEncoder(new CryptoPP::StringSink(encoded)));
 
   Ipv4GlobalRoutingHelper::PopulateRoutingTables();
 
@@ -110,10 +106,10 @@ int main(int argc, char *argv[])
   for (uint32_t i = 0;i < nApplications; ++i)
   {
     Ptr<Application> p = clientApps.Get (i);
-    echoClient.SetFill (p, cipher);
+    echoClient.SetFill (p, encoded);
   }
 
-  bottleneckHelper.EnablePcapAll ("rsa-dumbbell");
+  bottleneckHelper.EnablePcapAll ("des-dumbbell");
   
   Simulator::Run();
   Simulator::Destroy();

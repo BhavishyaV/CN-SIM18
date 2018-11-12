@@ -61,6 +61,7 @@ int main(int argc, char *argv[])
   routerAddress.SetBase("10.1.3.0","255.255.255.252");
 
   network1.AssignIpv4Addresses (address1,address2,routerAddress);
+
   CryptoPP::AutoSeededRandomPool rnd;
 
   // Generate a random key
@@ -76,30 +77,37 @@ int main(int argc, char *argv[])
   CryptoPP::CFB_Mode<CryptoPP::AES>::Encryption cfbEncryption(key, key.size(), iv);
   cfbEncryption.ProcessData((byte*)plainText, (byte*)plainText, msgLen);
 
-
   Ipv4GlobalRoutingHelper::PopulateRoutingTables();
 
- 
+  UdpEchoServerHelper echoServer (9);
 
-  //Assigning the bulk sending source
-  std::cout<<network1.GetRightIpv4Address(1)<<std::endl;
-  BulkSendHelper source("ns3::TcpSocketFactory",InetSocketAddress (network1.GetRightIpv4Address(1), 9));
-  source.SetAttribute ("MaxBytes", UintegerValue (0));
+  ApplicationContainer serverApps = echoServer.Install (network1.GetLeft (1));
+  serverApps.Start (Seconds (1.0));
+  serverApps.Stop (Seconds (10.0));
 
-  //Installing the application on the source and setting its start and finish time
-  ApplicationContainer sourceApps = source.Install(network1.GetLeft(1));
-  sourceApps.Start (Seconds (1.0));
-  sourceApps.Stop (Seconds (10.0));
-  
-  
+  UdpEchoClientHelper echoClient (network1.GetLeftIpv4Address (1), 9);
+  echoClient.SetAttribute ("MaxPackets", UintegerValue (1));
+  echoClient.SetAttribute ("Interval", TimeValue (Seconds (1.0)));
+  echoClient.SetAttribute ("PacketSize", UintegerValue (1024));
 
-  //Receiving the TCP packets
-  PacketSinkHelper sink ("ns3::TcpSocketFactory",InetSocketAddress (Ipv4Address::GetAny (),9));
-  ApplicationContainer sinkApps = sink.Install (network1.GetRight(1));
-  sinkApps.Start (Seconds (0.0));
-  sinkApps.Stop (Seconds (10.0));
+  ApplicationContainer clientApps;
 
- 
+  for (uint32_t i = 0; i < network1.RightCount(); ++i)
+   {
+      clientApps.Add (echoClient.Install (network1.GetRight(i)));
+   }
+  clientApps.Start (Seconds (1.0));
+  clientApps.Stop (Seconds (10.0));
+
+  uint32_t nApplications = clientApps.GetN ();
+  for (uint32_t i = 0;i < nApplications; ++i)
+  {
+    Ptr<Application> p = clientApps.Get (i);
+    echoClient.SetFill (p, plainText);
+  }
+
+  bottleneckHelper.EnablePcapAll ("aes-dumbbell");
+
   Simulator::Run();
   Simulator::Destroy();
   return 0;
