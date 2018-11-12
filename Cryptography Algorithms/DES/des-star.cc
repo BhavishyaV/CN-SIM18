@@ -22,9 +22,10 @@
 #include "ns3/point-to-point-module.h"
 #include "ns3/applications-module.h"
 #include "ns3/point-to-point-layout-module.h"
-#include <crypto++/aes.h>
+#include <crypto++/des.h>
 #include <crypto++/modes.h>
 #include <crypto++/osrng.h>
+#include <crypto++/hex.h>
 
 
 // Network topology (default)
@@ -76,7 +77,7 @@ main (int argc, char *argv[])
 
   NS_LOG_INFO ("Assign IP Addresses.");
   star.AssignIpv4Addresses (Ipv4AddressHelper ("10.1.1.0", "255.255.255.0"));
-   
+
   UdpEchoServerHelper echoServer (9);
 
   ApplicationContainer serverApps = echoServer.Install (star.GetHub());
@@ -91,39 +92,40 @@ main (int argc, char *argv[])
   ApplicationContainer spokeApps;
 
   for (uint32_t i = 0; i < star.SpokeCount (); ++i)
-    {
+  {
       spokeApps.Add (echoClient.Install (star.GetSpokeNode (i)));
-    }
+  }
   spokeApps.Start (Seconds (1.0));
   spokeApps.Stop (Seconds (10.0));
 
-  CryptoPP::AutoSeededRandomPool rnd;
-
-  // Generate a random key
-  CryptoPP::SecByteBlock key(0x00, CryptoPP::AES::DEFAULT_KEYLENGTH);
-  rnd.GenerateBlock( key, key.size() );
-  
-  // Generate a random IV
-  byte iv[CryptoPP::AES::BLOCKSIZE];
-  rnd.GenerateBlock(iv, CryptoPP::AES::BLOCKSIZE);
-
-  char plainText[] = "Hello World";
-  int msgLen = (int)strlen(plainText) + 1;
-  CryptoPP::CFB_Mode<CryptoPP::AES>::Encryption cfbEncryption(key, key.size(), iv);
-  cfbEncryption.ProcessData((byte*)plainText, (byte*)plainText, msgLen);
-
   Ipv4GlobalRoutingHelper::PopulateRoutingTables ();
+
+  CryptoPP::AutoSeededRandomPool prng;
+  CryptoPP::SecByteBlock key(CryptoPP::DES::DEFAULT_KEYLENGTH);
+  prng.GenerateBlock(key, key.size());
+
+  byte iv[CryptoPP::DES::BLOCKSIZE];
+  prng.GenerateBlock(iv, sizeof(iv));
+
+  std::string plain = "Hello World";
+  std::string cipher, encoded;
+
+  CryptoPP::CBC_Mode< CryptoPP::DES >::Encryption e;
+  e.SetKeyWithIV(key, key.size(), iv);
+  CryptoPP::StringSource(plain, true, new CryptoPP::StreamTransformationFilter(e,new CryptoPP::StringSink(cipher))); 
+  encoded.clear();
+  CryptoPP::StringSource(cipher, true,new CryptoPP::HexEncoder(new CryptoPP::StringSink(encoded)));
 
   uint32_t nApplications = spokeApps.GetN ();
   for (uint32_t i = 0;i < nApplications; ++i)
   {
     Ptr<Application> p = spokeApps.Get (i);
-    echoClient.SetFill (p, plainText);
+    echoClient.SetFill (p, encoded);
   }
-  
-  pointToPoint.EnablePcapAll ("aes-star");
-
+  pointToPoint.EnablePcapAll ("des-star");
+ 
   Simulator::Run ();
   Simulator::Destroy ();
+
   return 0;
 }

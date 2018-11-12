@@ -77,34 +77,26 @@ main (int argc, char *argv[])
   NS_LOG_INFO ("Assign IP Addresses.");
   star.AssignIpv4Addresses (Ipv4AddressHelper ("10.1.1.0", "255.255.255.0"));
 
-  NS_LOG_INFO ("Create applications.");
-  //
-  // Create a packet sink on the star "hub" to receive packets.
-  // 
-  uint16_t port = 50000;
-  Address hubLocalAddress (InetSocketAddress (Ipv4Address::GetAny (), port));
-  PacketSinkHelper packetSinkHelper ("ns3::TcpSocketFactory", hubLocalAddress);
-  ApplicationContainer hubApp = packetSinkHelper.Install (star.GetHub ());
-  hubApp.Start (Seconds (1.0));
-  hubApp.Stop (Seconds (10.0));
+  UdpEchoServerHelper echoServer (9);
 
-  //
-  // Create OnOff applications to send TCP to the hub, one on each spoke node.
-  //
-  OnOffHelper onOffHelper ("ns3::TcpSocketFactory", Address ());
-  onOffHelper.SetAttribute ("OnTime", StringValue ("ns3::ConstantRandomVariable[Constant=1]"));
-  onOffHelper.SetAttribute ("OffTime", StringValue ("ns3::ConstantRandomVariable[Constant=0]"));
+  ApplicationContainer serverApps = echoServer.Install (star.GetHub());
+  serverApps.Start (Seconds (1.0));
+  serverApps.Stop (Seconds (10.0));
+
+  UdpEchoClientHelper echoClient (star.GetHubIpv4Address (0), 9);
+  echoClient.SetAttribute ("MaxPackets", UintegerValue (1));
+  echoClient.SetAttribute ("Interval", TimeValue (Seconds (1.0)));
+  echoClient.SetAttribute ("PacketSize", UintegerValue (1024));
 
   ApplicationContainer spokeApps;
 
   for (uint32_t i = 0; i < star.SpokeCount (); ++i)
     {
-      AddressValue remoteAddress (InetSocketAddress (star.GetHubIpv4Address (i), port));
-      onOffHelper.SetAttribute ("Remote", remoteAddress);
-      spokeApps.Add (onOffHelper.Install (star.GetSpokeNode (i)));
+      spokeApps.Add (echoClient.Install (star.GetSpokeNode (i)));
     }
   spokeApps.Start (Seconds (1.0));
   spokeApps.Stop (Seconds (10.0));
+
   // Generate keys
   CryptoPP::AutoSeededRandomPool rng;
 
@@ -126,16 +118,14 @@ main (int argc, char *argv[])
         ); // StringSource
   
 
-  NS_LOG_INFO ("Enable static global routing.");
-  //
-  // Turn on global static routing so we can actually be routed across the star.
-  //
   Ipv4GlobalRoutingHelper::PopulateRoutingTables ();
 
-  NS_LOG_INFO ("Enable pcap tracing.");
-  //
-  // Do pcap tracing on all point-to-point devices on all nodes.
-  //
+  uint32_t nApplications = spokeApps.GetN ();
+  for (uint32_t i = 0;i < nApplications; ++i)
+  {
+    Ptr<Application> p = spokeApps.Get (i);
+    echoClient.SetFill (p, cipher);
+  }
   pointToPoint.EnablePcapAll ("rsa-star");
 
   NS_LOG_INFO ("Run Simulation.");
