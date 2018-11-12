@@ -38,7 +38,6 @@
 //        n8 n7 n6              .
 //
 
-
 using namespace ns3;
 
 NS_LOG_COMPONENT_DEFINE ("Star");
@@ -46,7 +45,6 @@ NS_LOG_COMPONENT_DEFINE ("Star");
 int 
 main (int argc, char *argv[])
 {
-
   //
   // Set up some default values for the simulation.
   //
@@ -91,9 +89,9 @@ main (int argc, char *argv[])
   ApplicationContainer spokeApps;
 
   for (uint32_t i = 0; i < star.SpokeCount (); ++i)
-    {
+  {
       spokeApps.Add (echoClient.Install (star.GetSpokeNode (i)));
-    }
+  }
   spokeApps.Start (Seconds (1.0));
   spokeApps.Stop (Seconds (10.0));
 
@@ -117,7 +115,6 @@ main (int argc, char *argv[])
            ) // PK_EncryptorFilter
         ); // StringSource
   
-
   Ipv4GlobalRoutingHelper::PopulateRoutingTables ();
 
   uint32_t nApplications = spokeApps.GetN ();
@@ -128,10 +125,7 @@ main (int argc, char *argv[])
   }
   pointToPoint.EnablePcapAll ("rsa-star");
 
-  NS_LOG_INFO ("Run Simulation.");
   Simulator::Run ();
   Simulator::Destroy ();
-  NS_LOG_INFO ("Done.");
-
   return 0;
 }

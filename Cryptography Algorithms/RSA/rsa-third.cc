@@ -28,7 +28,6 @@
 #include <crypto++/modes.h>
 #include <crypto++/osrng.h>
 
-
 // Default Network Topology
 //
 //   Wifi 10.1.3.0

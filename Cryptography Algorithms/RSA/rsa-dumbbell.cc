@@ -82,7 +82,6 @@ int main(int argc, char *argv[])
            new CryptoPP::StringSink(cipher)
            ) // PK_EncryptorFilter
         ); // StringSource
-  
 
   Ipv4GlobalRoutingHelper::PopulateRoutingTables();
 
@@ -100,9 +99,9 @@ int main(int argc, char *argv[])
   ApplicationContainer clientApps;
 
   for (uint32_t i = 0; i < network1.RightCount(); ++i)
-   {
+  {
       clientApps.Add (echoClient.Install (network1.GetRight(i)));
-   }
+  }
   clientApps.Start (Seconds (1.0));
   clientApps.Stop (Seconds (10.0));
 

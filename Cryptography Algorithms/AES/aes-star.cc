@@ -26,7 +26,6 @@
 #include <crypto++/modes.h>
 #include <crypto++/osrng.h>
 
-
 // Network topology (default)
 //
 //        n2 n3 n4              .
@@ -38,7 +37,6 @@
 //        n8 n7 n6              .
 //
 
-
 using namespace ns3;
 
 NS_LOG_COMPONENT_DEFINE ("Star");
@@ -46,7 +44,6 @@ NS_LOG_COMPONENT_DEFINE ("Star");
 int 
 main (int argc, char *argv[])
 {
-
   //
   // Set up some default values for the simulation.
   //

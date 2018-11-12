@@ -91,11 +91,10 @@ int main(int argc, char *argv[])
   echoClient.SetAttribute ("PacketSize", UintegerValue (1024));
 
   ApplicationContainer clientApps;
-
   for (uint32_t i = 0; i < network1.RightCount(); ++i)
-   {
+  {
       clientApps.Add (echoClient.Install (network1.GetRight(i)));
-   }
+  }
   clientApps.Start (Seconds (1.0));
   clientApps.Stop (Seconds (10.0));
 

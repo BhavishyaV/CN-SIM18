@@ -28,7 +28,6 @@
 #include <crypto++/osrng.h>
 #include <crypto++/hex.h>
 
-
 // Default Network Topology
 //
 //   Wifi 10.1.3.0
@@ -174,7 +173,6 @@ main (int argc, char *argv[])
   clientApps.Start (Seconds (2.0));
   clientApps.Stop (Seconds (10.0));
 
-
   Ipv4GlobalRoutingHelper::PopulateRoutingTables ();
 
   CryptoPP::AutoSeededRandomPool prng;
@@ -194,7 +192,6 @@ main (int argc, char *argv[])
   CryptoPP::StringSource(cipher, true,new CryptoPP::HexEncoder(new CryptoPP::StringSink(encoded)));
 
   echoClient.SetFill (clientApps.Get (0), encoded);
-
 
   Simulator::Stop (Seconds (10.0));
   pointToPoint.EnablePcapAll ("des-third");

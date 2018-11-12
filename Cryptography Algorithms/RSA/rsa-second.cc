@@ -26,7 +26,6 @@
 #include <crypto++/modes.h>
 #include <crypto++/osrng.h>
 
-
 // Default Network Topology
 //
 //       10.1.1.0
@@ -34,7 +33,6 @@
 //    point-to-point  |    |    |    |
 //                    ================
 //                      LAN 10.1.2.0
-
 
 using namespace ns3;
 

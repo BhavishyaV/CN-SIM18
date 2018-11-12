@@ -34,7 +34,6 @@
 //                    ================
 //                      LAN 10.1.2.0
 
-
 using namespace ns3;
 
 NS_LOG_COMPONENT_DEFINE ("SecondScriptExample");

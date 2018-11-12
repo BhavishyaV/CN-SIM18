@@ -187,18 +187,14 @@ main (int argc, char *argv[])
   CryptoPP::CFB_Mode<CryptoPP::AES>::Encryption cfbEncryption(key, key.size(), iv);
   cfbEncryption.ProcessData((byte*)plainText, (byte*)plainText, msgLen);
 
-
-
   Ipv4GlobalRoutingHelper::PopulateRoutingTables ();
   echoClient.SetFill (clientApps.Get (0), cipher);
   Simulator::Stop (Seconds (10.0));
-
  
   pointToPoint.EnablePcapAll ("third");
   phy.EnablePcap ("third", apDevices.Get (0));
   csma.EnablePcap ("third", csmaDevices.Get (0), true);
-    
-
+ 
   Simulator::Run ();
   Simulator::Destroy ();
   return 0;

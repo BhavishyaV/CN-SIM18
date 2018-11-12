@@ -24,7 +24,6 @@
 #include <crypto++/modes.h>
 #include <crypto++/osrng.h>
 
-
 using namespace ns3;
 
 NS_LOG_COMPONENT_DEFINE ("FirstScriptExample");
@@ -91,8 +90,10 @@ main (int argc, char *argv[])
            new CryptoPP::StringSink(cipher)
            ) // PK_EncryptorFilter
         ); // StringSource
+
   echoClient.SetFill (clientApps.Get (0), cipher);
   pointToPoint.EnablePcapAll ("rsa-P2P");
+  
   Simulator::Run ();
   Simulator::Destroy ();
   return 0;
